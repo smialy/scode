@@ -17,9 +17,9 @@
                 }
             }, options);
             this.dom = dom;
-
-            this.ui = new __.UI(this);
             this.model = new __.Model();
+            this.ui = new __.UI(this);
+            
       
             this.setFocus(true);
             this.resize();
