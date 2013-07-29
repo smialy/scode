@@ -9,11 +9,18 @@
             this.ctx = this.canvas.getContext('2d');
 
             this.fm = new __.FontMetric(this.theme.font, this.theme.fontSize);
-            api.dom.appendChild(this.canvas);
-
+            var dom = api.dom;
+            dom.appendChild(this.canvas);
+            __.on(dom,'mousewheel',this._wheel, this);
+            
             this.x = 0;
-            this.y = -10;
+            this.y = 0;
 
+        },
+        _wheel:function(e){
+            this.y+=e.$wheel*10;
+            
+            this.paint();
         },
         setFocus: function(focus) {
             console.log('scode.Ui::setFocus('+focus+')');
@@ -38,15 +45,16 @@
             var lineHeight = this.fm.getHeight();
             var charWidth = this.fm.getWidth();
             var baseLine = this.fm.getBaseLine();
+            var model = this.api.model;
 
             var visibleLines = Math.ceil(cheight/lineHeight);
             var firstVisibleLine = Math.floor(Math.abs(this.y/lineHeight));
             var lastVisibleLine = firstVisibleLine+visibleLines;
-            if(lastVisibleLine > this.api.model.getLineCount()) {
-                lastVisibleLine = this.api.model.getLineCount();
+            if(lastVisibleLine > model.getLineCount()) {
+                lastVisibleLine = model.getLineCount();
             }
-
-            var border = 10+(''+lastVisibleLine).length*charWidth;
+            var maxNumberSize = (''+model.getLineCount()).length; 
+            var border = 10+maxNumberSize*charWidth;
 
             ctx.fillStyle = theme.backgroundColor;
             ctx.fillRect(0, 0, cwidth, cheight);
@@ -58,14 +66,18 @@
             ctx.translate(0, this.y);
 
             ctx.font = theme.fontSize+'px '+theme.font;
-            console.log('firstVisibleLine',firstVisibleLine);
-            console.log('lastVisibleLine',lastVisibleLine);
-            console.log('visibleLines',visibleLines);
+            
+            // console.log('firstVisibleLine',firstVisibleLine);
+            // console.log('lastVisibleLine',lastVisibleLine);
+            // console.log('visibleLines',visibleLines);
+            
             //draw line numbers
             var x = 5, y = lineHeight*firstVisibleLine+lineHeight;
             ctx.fillStyle = theme.lineNumberColor;
             for(var currentLine = firstVisibleLine;currentLine <= lastVisibleLine;++currentLine) {
-                ctx.fillText(currentLine+1, x, y);
+                var line = currentLine+1;
+                 
+                ctx.fillText(currentLine+1, x+((maxNumberSize-(''+line).length)*charWidth), y);
                 y += lineHeight;
             }
 
@@ -76,8 +88,7 @@
             ctx.translate(0, 0);
             ctx.clip();
 
-            var lines = this.api.model.getLines(firstVisibleLine, lastVisibleLine);
-            console.log(lines);
+            var lines = model.getLines(firstVisibleLine, lastVisibleLine);
             ctx.fillStyle = theme.fontColor;
             y = lineHeight*firstVisibleLine+lineHeight;
             for(var currentLine = 0;currentLine < lines.length;++currentLine) {

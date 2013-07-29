@@ -1,22 +1,102 @@
 var scode = {};
 
 (function(__) {
-    
-    __.ext = function(){
+
+    __.ext = function() {
         var buff = {}, arg;
-        for(var i=0,j=arguments.length; i<j; i++){
+        for(var i = 0, j = arguments.length;i < j;i++) {
             arg = arguments[i];
-            if(arg){
-                for(var a in arg){
+            if(arg) {
+                for(var a in arg) {
                     buff[a] = typeof arg[a] === 'object' ? __.ext(buff[a], arg[a]) : arg[a];
                 }
             }
         }
         return buff;
     };
-    
-    
-    
+    (function() {
+
+        var el = document.createElement('div');
+        var isEventSupport = function(name) {
+            var el = window
+            var ename = 'on'+name.toLowerCase();
+            if( ename in el) {
+                return true;
+            }
+            var isSupport = false;
+            if(el.setAttribute) {
+                el.setAttribute(ename, 'return;');
+                isSupport = typeof el[ename] === 'function';
+                el.removeAttribute(ename);
+            }
+            return isSupport;
+        }
+        var listeners = {
+            items:[],
+            get: function(type, callback, bind, create) {
+                var item;
+                for(var i = 0, j = this.items.length;i < j;i++) {
+                    var item = this.items[i];
+                    if(item&&item[1] === type&&item[2] === callback&&item[2] === bind) {
+                        return item[0];
+                    }
+                }
+                if(create) {
+                    var listener = function(e) {
+                        var e = window.event||e;
+
+                        if(e.type === 'mousewheel') {
+                            e.$wheel = Math.abs(e.wheelDelta)/e.wheelDelta;
+
+                        } else if(e.type === 'DOMMouseScroll') {
+                            e.$wheel = -Math.abs(e.detail)/e.detail;
+                            if(e.axis) {
+                                if(e.axis == e.HORIZONTAL_AXIS) {
+                                    e.$axis = "horizontal";
+                                } else {
+                                    e.$axis = "vertical";
+                                }
+                            } else if(e.wheelDeltaX&&e.wheelDeltaX === e.wheelDelta) {
+                                e.$axis = "horizontal";
+                            } else {
+                                e.$axis = "vertical";
+                            }
+                        }
+                        callback.call(bind, e);
+                    };
+                    this.items.push([listener, type, callback, bind]);
+                    return listener;
+                }
+                return null;
+            }
+        };
+        __.on = function(target, type, callback, bind) {
+            if(type === 'mousewheel') {
+                if(!isEventSupport('mousewheel')) {
+                    type = 'DOMMouseScroll';
+                }
+            }
+
+            bind = bind||null;
+            var listener = listeners.get(type, callback, bind, true);
+            if(target.addEventListener) {
+                target.addEventListener(type, listener, false);
+                return {
+                    remove: function() {
+                        target.removeEventListener(type, listener, false);
+                    }
+                };
+            }
+        };
+        __.off = function(target, type, callback, bind) {
+            bind = bind||null;
+            var listener = listeners.get(type, callback, bind);
+            if(listener&&target.addEventListener) {
+                target.removeEventListener(type, listener, false);
+            }
+        }
+    })();
+
     var isArray = function(o) {
         return Object.prototype.toString.call(o) === '[object Array]';
     };

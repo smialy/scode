@@ -15,6 +15,9 @@
             }
             this._maxLineLength = max;
         },
+        length:function(){
+            return this._length;
+        },
         getLine: function(number) {
             return this._lines[number];
         },
@@ -26,7 +29,7 @@
         },
         charAt: function(line, column) {
             var row = this._lines[line];
-            return row ? row[column] : null;
+            return row ? row[column] : '';
         },
         getMaxLineLength: function() {
             return this._maxLineLength;

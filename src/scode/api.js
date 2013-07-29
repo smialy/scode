@@ -20,7 +20,7 @@
 
             this.ui = new __.UI(this);
             this.model = new __.Model();
-
+      
             this.setFocus(true);
             this.resize();
         },
