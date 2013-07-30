@@ -21,9 +21,9 @@
             this._ctx = this._canvas.getContext('2d');
         },
         setBound:function(x,y, width, height){
-            console.debug('scode.ui.scrollbar.setSize(x='+x+', y='+y+', width='+width+', height+'+height+')');
+            console.debug('scode.ui.scrollbar.setSize(x='+x+', y='+y+', width='+width+', height='+height+')');
             this._x = x;
-            this._y = x;
+            this._y = y;
             this._canvas.width = this._width = width;
             this._canvas.height = this._height = height;
         },
@@ -41,20 +41,21 @@
             this.$base(ui,'horizontal');
         },
         draw:function(x,y){
-            
+            var half = this._height/2;
             var ctx = this._ctx;
             ctx.clearRect(0,0,this._width,this._height);
             ctx.save();
             
-            ctx.strokeStyle = '#f00';
-            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'rgba(128,128,128,0.5)';
+            ctx.lineWidth = 16;
             ctx.lineCap = 'round';
             ctx.beginPath();
-            ctx.moveTo(5,2);
-            ctx.lineTo(this._width-15,2);
+            ctx.moveTo(half,half);
+            ctx.lineTo(this._width-4-half,half);
             ctx.stroke();
             
             ctx.restore();
+            
             this.ui.ctx.drawImage(this._canvas, this._x, this._y);
         }
     });
@@ -63,16 +64,17 @@
             this.$base(ui,'vertical');
         },
         draw:function(){
+            var half = this._width/2;
             var ctx = this._ctx;
             ctx.clearRect(0,0,this._width,this._height);
             ctx.save();
             
-            ctx.strokeStyle = '#f00';
-            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'rgba(128,128,128,0.5)';
+            ctx.lineWidth = 16;
             ctx.lineCap = 'round';
             ctx.beginPath();
-            ctx.moveTo(2,5);
-            ctx.lineTo(2,this._height-15);
+            ctx.moveTo(half,half);
+            ctx.lineTo(half,this._height-4-half);
             ctx.stroke();
             
             ctx.restore();
@@ -137,9 +139,9 @@
             this._canvas.height = height;
             this._viewWidth = this._model.getMaxLineLength()*this.fm.getWidth()-width;
             this._viewHeight = this._model.getLineCount()*this.fm.getHeight()-height;
-            var size = 20;
-            this.vscrollbar.setBound(width-size,0, size, height-20);
-            this.hscrollbar.setBound(0,height-size,width-20,size);
+            var size = 30;
+            this.vscrollbar.setBound(width-size,0, size, height-size);
+            this.hscrollbar.setBound(0,height-size,width-size,size);
             this.draw();
         },
         draw: function() {
