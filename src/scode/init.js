@@ -31,6 +31,27 @@ var scode = {};
             }
             return isSupport;
         }
+        var _codes = {
+            38:'up',
+            39:'right',
+            40:'down',
+            37:'left',
+            16:'shift',
+            17:'control',
+            18:'alt',
+            9:'tab',
+            13:'enter',
+            36:'home',
+            35:'end',
+            33:'pageup',
+            34:'pagedown',
+            45:'insert',
+            46:'delete',
+            27:'escape',
+            32:'space',
+            8:'backspace'
+        };
+        
         var listeners = {
             items:[],
             get: function(type, callback, bind, create) {
@@ -42,36 +63,76 @@ var scode = {};
                     }
                 }
                 if(create) {
+                    
+                    
+                    
                     var listener = function(e) {
-                        var e = e || window.event;
+                        var e = e||window.event;
+                        var type = e.type;
 
-                        if(e.type === 'mousewheel') {
-                            e.$wheel = Math.abs(e.wheelDelta)/e.wheelDelta;
-                        } else if(e.type === 'DOMMouseScroll') {
-                            e.$wheel = -Math.abs(e.detail)/e.detail;
-                            if(e.axis) {
-                                if(e.axis == e.HORIZONTAL_AXIS) {
+                        e.$shift = event.shiftKey;
+                        e.$control = event.ctrlKey;
+                        e.$alt = event.altKey;
+                        e.$meta = event.metaKey;
+
+                        var target = e.target||e.srcElement;
+                        while(target&&target.nodeType === 3) {
+                            target = target.parentNode;
+                        }
+                        e.$target = target;
+                        if(type.indexOf('key') === 0) {
+                            var code = e.which||e.keyCode;
+                            
+                            if(_codes[code]) {
+                                e.$key = _codes[code];
+                            } else if(type == 'keydown'||type == 'keyup') {
+                                if(code > 111&&code < 124) {
+                                    e.$key = 'f'+(code-111);
+                                } else if(code > 95&&code < 106) {
+                                    e.$key = code-96;
+                                }else{
+                                    e.$key = String.fromCharCode(code).toLowerCase();
+                                }
+                            }
+                        } else if(type === 'click'||type === 'dbclick'||type.indexOf('mouse') === 0||type === 'DOMMouseScroll'||type === 'contextmenu') {
+                            //mootools
+                            var doc = (!document.compatMode||document.compatMode == 'CSS1Compat') ? document.html : document.body;
+                            e.$page = {
+                                x:(e.pageX !== null) ? e.pageX : e.clientX+document.body.scrollLeft,
+                                x:(e.pageY !== null) ? e.pageY : e.clientY+document.body.scrollTop
+                            };
+                            e.$client = {
+                                x:(e.pageX != null) ? e.pageX-window.pageXOffset : e.clientX,
+                                y:(e.pageY != null) ? e.pageY-window.pageYOffset : e.clientY
+                            };
+                            e.$right = (e.which == 3||e.button == 2);
+
+                            if(e.type === 'mousewheel'||e.type === 'DOMMouseScroll') {
+                                e.$wheel = (event.wheelDelta) ? event.wheelDelta/120 : -(event.detail||0)/3
+                                if(e.axis) {
+                                    if(e.axis == e.HORIZONTAL_AXIS) {
+                                        e.$axis = "horizontal";
+                                    } else {
+                                        e.$axis = "vertical";
+                                    }
+                                } else if(e.wheelDeltaX&&e.wheelDeltaX === e.wheelDelta) {
                                     e.$axis = "horizontal";
                                 } else {
                                     e.$axis = "vertical";
                                 }
-                            } else if(e.wheelDeltaX&&e.wheelDeltaX === e.wheelDelta) {
-                                e.$axis = "horizontal";
-                            } else {
-                                e.$axis = "vertical";
                             }
                         }
-                        if(!e.preventDefault){
-                            e.preventDefault = function(){
-                                e.returnValue = false;  
+                        if(!e.preventDefault) {
+                            e.preventDefault = function() {
+                                e.returnValue = false;
                             };
                         }
-                        if(!e.stopPropagation){
-                            e.stopPropagation = function(){
-                                e.cancelBuble = true;  
+                        if(!e.stopPropagation) {
+                            e.stopPropagation = function() {
+                                e.cancelBuble = true;
                             };
                         }
-                        e.$stop = function(){
+                        e.$stop = function() {
                             e.preventDefault();
                             e.stopPropagation();
                         };
