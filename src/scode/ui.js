@@ -13,45 +13,38 @@
         }
     });
     var Scrollbar = __.Class({
-        init: function(ui, type) {
+        init: function(ui) {
             this.ui = ui;
-            this._type = type;
-            this.pos = 0;
+            this.pos = this.y = this.x = this.delta = this.barLength = 0;
 
-            this._canvas = document.createElement('canvas');
-            this._ctx = this._canvas.getContext('2d');
+            this.canvas = document.createElement('canvas');
+            this.ctx = this.canvas.getContext('2d');
         },
         setBound: function(x, y, width, height) {
             console.debug('scode.ui.scrollbar.setBound(x='+x+', y='+y+', width='+width+', height='+height+')');
-            this._x = x;
-            this._y = y;
-            this._canvas.width = this._width = width;
-            this._canvas.height = this._height = height;
+            this.bound = new Rect(x, y, width, height);
+            this.canvas.width = width;
+            this.canvas.height = height;
             return this;
         },
-        setSize: function(view, content) {
 
-        },
         draw: function(x, y) {
 
         }
     });
     var HScrollbar = __.Class(Scrollbar, {
-        init: function(ui) {
-            this.$base(ui, 'horizontal');
-        },
-        setSize: function(offset, length) {
-            console.debug('scode.ui.scrollbar.setSize('+offset+','+length+')');
-            //this.barSize = dx/content*this._width;
-            //this.delta = this._width-this.barSize;
-            this.delta = 0;
+        setSize: function(max, length) {
+            console.debug('scode.ui.scrollbar.setSize(max='+max+', length='+length+')');
+            this.barLength = max/length*this.bound.width;
+            this.delta = this.bound.width-this.barLength;
+            this.barLength -= this.bound.height;
             return this;
         },
         draw: function(pos) {
             this.pos = -pos*this.delta;
-            var half = this._height/2;
-            var ctx = this._ctx;
-            ctx.clearRect(0, 0, this._width, this._height);
+            var half = this.bound.height/2;
+            var ctx = this.ctx;
+            ctx.clearRect(0, 0, this.bound.width, this.bound.height);
             ctx.save();
 
             ctx.strokeStyle = 'rgba(128,128,128,0.5)';
@@ -59,7 +52,7 @@
             ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(half, half);
-            ctx.lineTo(this._width-4-half, half);
+            ctx.lineTo(this.bound.width-half, this.bound.height-half);
             ctx.stroke();
 
             ctx.strokeStyle = 'rgba(255,255,255,0.5)';
@@ -67,28 +60,27 @@
             ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(this.pos+half, half);
-            ctx.lineTo(this.pos+this.barSize-half, half);
+            ctx.lineTo(this.pos+half+this.barLength, half);
             ctx.stroke();
 
             ctx.restore();
 
-            this.ui.ctx.drawImage(this._canvas, this._x, this._y);
+            this.ui.ctx.drawImage(this.canvas, this.bound.x, this.bound.y);
         }
     });
     var VScrollbar = __.Class(Scrollbar, {
-        init: function(ui) {
-            this.$base(ui, 'vertical');
-        },
-        setSize: function(offset, length) {
-            console.debug('scode.ui.scrollbar.setSize('+offset+','+length+')');
-            this.delta = 0
+        setSize: function(max, length) {
+            console.debug('scode.ui.scrollbar.setSize(max='+max+', length='+length+')');
+            this.barLength = max/length*this.bound.height;
+            this.delta = this.bound.height-this.barLength;
+            this.barLength -= this.bound.width;
             return this;
         },
         draw: function(pos) {
             this.pos = -pos*this.delta;
-            var half = this._width/2;
-            var ctx = this._ctx;
-            ctx.clearRect(0, 0, this._width, this._height);
+            var half = this.bound.width/2;
+            var ctx = this.ctx;
+            ctx.clearRect(0, 0, this.bound.width, this.bound.height);
             ctx.save();
 
             ctx.strokeStyle = 'rgba(128,128,128,0.5)';
@@ -96,7 +88,7 @@
             ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(half, half);
-            ctx.lineTo(half, this._height-4-half);
+            ctx.lineTo(half, this.bound.height-half);
             ctx.stroke();
 
             ctx.strokeStyle = 'rgba(255,255,255,0.5)';
@@ -104,12 +96,12 @@
             ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(half, this.pos+half);
-            ctx.lineTo(half, this.pos+this.barSize-half);
+            ctx.lineTo(half, this.pos+half+this.barLength);
             ctx.stroke();
 
             ctx.restore();
 
-            this.ui.ctx.drawImage(this._canvas, this._x, this._y);
+            this.ui.ctx.drawImage(this.canvas, this.bound.x, this.bound.y);
         }
     });
 
@@ -121,17 +113,30 @@
 
             this.canvas = document.createElement('canvas');
             this.canvas.tabindex = -1;
+            this.canvas.setAttribute('tabindex', -1);
             this.canvas.style.display = 'block';
             this.ctx = this.canvas.getContext('2d');
 
             this.fm = new __.FontMetric(this.theme.font, this.theme.fontSize);
             var dom = api.dom;
+            dom.setAttribute('tabindex', 0);
             dom.appendChild(this.canvas);
 
             this.vscrollbar = new VScrollbar(this);
             this.hscrollbar = new HScrollbar(this);
 
+            __.on(this.canvas, 'focus', function(e) {
+
+            }, this);
+            __.on(this.canvas, 'blur', function(e) {
+
+            }, this);
             __.on(dom, 'mousewheel', this._wheel, this);
+            __.on(dom, 'mousedown', this._mousedown, this);
+            __.on(dom, 'keydown', this._keydown, this);
+
+            this.SCROLL_WIDTH = 20;
+            this.VIEW_MARGIN = 2;
 
             this.x = 0;
             this.y = 0;
@@ -140,10 +145,47 @@
         dispose: function() {
 
         },
+        _keydown: function(e) {
+            var isDraw = true;
+            switch(e.$key) {
+                case 'up':
+                    this.y+=this.lineHeight;
+                    break;
+                case 'down':
+                    this.y-=this.lineHeight;
+                    break;
+                case 'left':
+                    this.x+=this.charWidth;
+                    break;
+                case 'right':
+                    this.x-=this.charWidth;
+                    break;
+                case 'pagedown':
+                    this.y-=this.viewHeight;
+                        break;
+                case 'pageup':
+                    this.y+=this.viewHeight;
+                        break;
+                case 'home':
+                    this.y = 0;
+                    break;
+                case 'end':
+                    this.y = -this.dy;
+                    break;
+                default:
+                    isDraw = false;
+            }
+            if(isDraw){
+                this.draw();
+            }
+        },
+        _mousedown: function(e) {
+            
+        },
         _wheel: function(e) {
             e.$stop();
             if(e.shiftKey) {
-                this.x += e.$wheel*this.fm.getWidth();
+                this.x += e.$wheel*this.fm.getWidth()*2;
             } else {
                 this.y += e.$wheel*this.fm.getHeight();
             }
@@ -170,32 +212,28 @@
             var maxLineLength = this.model.getMaxLineLength();
             this.lineHeight = this.fm.getHeight();
             this.charWidth = this.fm.getWidth();
-
+            
             var maxNumberSize = (''+this.lineCount).length;
-            
-            this.rulerWidth = 10+maxNumberSize*this.charWidth;
-            this.scrollWidth = 20;
-            
-            var contentWidth = maxLineLength*this.charWidth;
-            var contentHeight = this.lineCount*this.lineHeight;
-            
-            
-            
-            var dx = contentWidth+this.rulerWidth > this.width ? contentWidth+this.rulerWidth+this.scrollWidth-this.width : 0;
-            var dy = contentHeight > this.height ? contentHeight+this.scrollWidth-this.height : 0;
-            console.log(contentWidth, contentHeight);
-            console.log(dx, dy);
-            
-            this.viewWidth = this.width-this.rulerWidth;
-            if(dx > 0){
-                this.viewWidth-=this.scrollWidth;
+
+            this.rulerWidth = (maxNumberSize+1)*this.charWidth;
+
+            var contentWidth = this.contentWidth = maxLineLength*this.charWidth;
+            var contentHeight = this.contentHeight = this.lineCount*this.lineHeight;
+
+            var dx = this.dx = contentWidth+this.rulerWidth > this.width ? contentWidth+this.rulerWidth+this.SCROLL_WIDTH-this.width : 0;
+            var dy = this.dy = contentHeight > this.height ? contentHeight+this.SCROLL_WIDTH-this.height : 0;
+
+            this.viewWidth = this.width-this.rulerWidth-this.VIEW_MARGIN;
+            if(dx > 0) {
+                this.viewWidth -= this.SCROLL_WIDTH;
             }
             this.viewHeight = this.height;
-            if(dy > 0){
-                this.viewHeight-=this.scrollWidth;
+            if(dy > 0) {
+                this.viewHeight -= this.SCROLL_WIDTH;
             }
-            this.vscrollbar.setBound(this.viewWidth, 0, this.scrollWidth, this.viewHeight).setSize(dy, contentHeight);
-            this.hscrollbar.setBound(0, this.viewHeight, this.viewWidth, this.scrollWidth).setSize(dx, contentWidth);
+            
+            this.vscrollbar.setBound(this.width-this.SCROLL_WIDTH, 0, this.SCROLL_WIDTH, this.viewHeight).setSize(dy, contentHeight);
+            this.hscrollbar.setBound(this.rulerWidth, this.viewHeight, this.viewWidth, this.SCROLL_WIDTH).setSize(dx, contentWidth);
             this.draw();
         },
         draw: function() {
@@ -222,7 +260,7 @@
             if(this.y < -vheight) {
                 this.y = -vheight;
             }
-            var visibleLines = Math.ceil(cheight/lineHeight);
+            var visibleLines = Math.ceil(vheight/lineHeight);
             var firstVisibleLine = Math.floor(Math.abs(this.y/lineHeight));
             var lastVisibleLine = firstVisibleLine+visibleLines;
             if(lastVisibleLine > model.getLineCount()) {
@@ -230,7 +268,6 @@
             }
 
             var maxNumberSize = (''+model.getLineCount()).length;
-            var border = 10+maxNumberSize*charWidth;
 
             ctx.fillStyle = theme.backgroundColor;
             ctx.fillRect(0, 0, cwidth, cheight);
@@ -256,20 +293,19 @@
                 ctx.fillText(currentLine+1, x+((maxNumberSize-(''+line).length)*charWidth), y);
                 y += lineHeight;
             }
-            
+
             ctx.save();
             ctx.beginPath();
-            ctx.rect(border, -this.y, this.viewWidth, this.viewHeight);
+            ctx.rect(this.rulerWidth, -this.y, this.viewWidth, this.viewHeight);
             ctx.closePath();
             ctx.translate(0, 0);
             ctx.clip();
-            
 
             var lines = model.getLines(firstVisibleLine, lastVisibleLine);
             ctx.fillStyle = theme.fontColor;
             y = lineHeight*firstVisibleLine+lineHeight;
             for(var currentLine = 0;currentLine < lines.length;++currentLine) {
-                ctx.fillText(lines[currentLine], border+10+this.x, y);
+                ctx.fillText(lines[currentLine], this.rulerWidth+this.x+this.VIEW_MARGIN, y);
                 y += lineHeight;
             }
             ctx.restore();
