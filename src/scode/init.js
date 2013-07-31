@@ -99,13 +99,13 @@ var scode = {};
                             var doc = (!document.compatMode||document.compatMode == 'CSS1Compat') ? document.html : document.body;
                             e.$page = {
                                 x:(e.pageX !== null) ? e.pageX : e.clientX+document.body.scrollLeft,
-                                x:(e.pageY !== null) ? e.pageY : e.clientY+document.body.scrollTop
+                                y:(e.pageY !== null) ? e.pageY : e.clientY+document.body.scrollTop
                             };
                             e.$client = {
                                 x:(e.pageX != null) ? e.pageX-window.pageXOffset : e.clientX,
                                 y:(e.pageY != null) ? e.pageY-window.pageYOffset : e.clientY
                             };
-                            e.$right = (e.which == 3||e.button == 2);
+                            e.$isRight = (e.which == 3||e.button == 2);
 
                             if(e.type === 'mousewheel'||e.type === 'DOMMouseScroll') {
                                 e.$wheel = (event.wheelDelta) ? event.wheelDelta/120 : -(event.detail||0)/3
