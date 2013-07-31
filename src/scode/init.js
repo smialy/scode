@@ -43,11 +43,10 @@ var scode = {};
                 }
                 if(create) {
                     var listener = function(e) {
-                        var e = window.event||e;
+                        var e = e || window.event;
 
                         if(e.type === 'mousewheel') {
                             e.$wheel = Math.abs(e.wheelDelta)/e.wheelDelta;
-
                         } else if(e.type === 'DOMMouseScroll') {
                             e.$wheel = -Math.abs(e.detail)/e.detail;
                             if(e.axis) {
@@ -62,6 +61,20 @@ var scode = {};
                                 e.$axis = "vertical";
                             }
                         }
+                        if(!e.preventDefault){
+                            e.preventDefault = function(){
+                                e.returnValue = false;  
+                            };
+                        }
+                        if(!e.stopPropagation){
+                            e.stopPropagation = function(){
+                                e.cancelBuble = true;  
+                            };
+                        }
+                        e.$stop = function(){
+                            e.preventDefault();
+                            e.stopPropagation();
+                        };
                         callback.call(bind, e);
                     };
                     this.items.push([listener, type, callback, bind]);
