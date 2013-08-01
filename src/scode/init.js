@@ -168,7 +168,16 @@ var scode = {};
             if(listener&&target.addEventListener) {
                 target.removeEventListener(type, listener, false);
             }
-        }
+        };
+        __.position = function(el){
+            var rect = el.getBoundingClientRect();
+            return {
+                x:rect.left,
+                y:rect.top,
+                width:rect.right-rect.left,
+                height:rect.bottom-rect.top
+            };
+        };
     })();
 
     var isArray = function(o) {
