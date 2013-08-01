@@ -70,10 +70,10 @@ var scode = {};
                         var e = e||window.event;
                         var type = e.type;
 
-                        e.$shift = event.shiftKey;
-                        e.$control = event.ctrlKey;
-                        e.$alt = event.altKey;
-                        e.$meta = event.metaKey;
+                        e.$shift = e.shiftKey;
+                        e.$control = e.ctrlKey;
+                        e.$alt = e.altKey;
+                        e.$meta = e.metaKey;
 
                         var target = e.target||e.srcElement;
                         while(target&&target.nodeType === 3) {
@@ -108,7 +108,7 @@ var scode = {};
                             e.$isRight = (e.which == 3||e.button == 2);
 
                             if(e.type === 'mousewheel'||e.type === 'DOMMouseScroll') {
-                                e.$wheel = (event.wheelDelta) ? event.wheelDelta/120 : -(event.detail||0)/3
+                                e.$wheel = (e.wheelDelta) ? e.wheelDelta/120 : -(e.detail||0)/3
                                 if(e.axis) {
                                     if(e.axis == e.HORIZONTAL_AXIS) {
                                         e.$axis = "horizontal";
