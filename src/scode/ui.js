@@ -1,116 +1,6 @@
 (function(__) {
-    var Rect = __.Class({
-        init: function(x, y, width, height) {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-            this.x2 = x+width;
-            this.y2 = y+height;
-        },
-        contains: function(point) {
-            return this.x <= point.x&&this.x2 >= point.x&&this.y <= point.y&&this.y2 >= point.y;
-        }
-    });
-    var Scrollbar = __.Class({
-        init: function(ui) {
-            this.ui = ui;
-            this.pos = this.y = this.x = this.delta = this.barLength = 0;
-
-            this.canvas = document.createElement('canvas');
-            this.ctx = this.canvas.getContext('2d');
-        },
-        setPostion:function(pos){
-            
-        },
-        setBound: function(x, y, width, height) {
-            console.debug('scode.ui.scrollbar.setBound(x='+x+', y='+y+', width='+width+', height='+height+')');
-            this.bound = new Rect(x, y, width, height);
-            this.canvas.width = width;
-            this.canvas.height = height;
-            return this;
-        },
-
-        draw: function(x, y) {
-
-        }
-    });
-    var HScrollbar = __.Class(Scrollbar, {
-        setSize: function(max, length) {
-            console.debug('scode.ui.scrollbar.setSize(max='+max+', length='+length+')');
-            this.barLength = max/length*this.bound.width;
-            this.delta = this.bound.width-this.barLength;
-            this.barLength -= this.bound.height;
-            return this;
-        },
-        draw: function(pos) {
-            this.pos = -pos*this.delta;
-            var half = this.bound.height/2;
-            var ctx = this.ctx;
-            ctx.clearRect(0, 0, this.bound.width, this.bound.height);
-            ctx.save();
-
-            ctx.strokeStyle = 'rgba(128,128,128,0.5)';
-            ctx.lineWidth = 16;
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            ctx.moveTo(half, half);
-            ctx.lineTo(this.bound.width-half, this.bound.height-half);
-            ctx.stroke();
-
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 16;
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            ctx.moveTo(this.pos+half, half);
-            ctx.lineTo(this.pos+half+this.barLength, half);
-            ctx.stroke();
-
-            ctx.restore();
-
-            this.ui.ctx.drawImage(this.canvas, this.bound.x, this.bound.y);
-        }
-    });
-    var VScrollbar = __.Class(Scrollbar, {
-        setPosition:function(pos){
-            this.draw(pos.y);  
-        },
-        setSize: function(max, length) {
-            console.debug('scode.ui.scrollbar.setSize(max='+max+', length='+length+')');
-            this.barLength = max/length*this.bound.height;
-            this.delta = this.bound.height-this.barLength;
-            this.barLength -= this.bound.width;
-            return this;
-        },
-        draw: function(pos) {
-            this.pos = -pos*this.delta;
-            var half = this.bound.width/2;
-            var ctx = this.ctx;
-            ctx.clearRect(0, 0, this.bound.width, this.bound.height);
-            ctx.save();
-
-            ctx.strokeStyle = 'rgba(128,128,128,0.5)';
-            ctx.lineWidth = 16;
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            ctx.moveTo(half, half);
-            ctx.lineTo(half, this.bound.height-half);
-            ctx.stroke();
-
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 16;
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            ctx.moveTo(half, this.pos+half);
-            ctx.lineTo(half, this.pos+half+this.barLength);
-            ctx.stroke();
-
-            ctx.restore();
-
-            this.ui.ctx.drawImage(this.canvas, this.bound.x, this.bound.y);
-        }
-    });
-
+    
+    
     __.UI = __.Class({
         init: function(api) {
             this.api = api;
@@ -128,8 +18,8 @@
             dom.setAttribute('tabindex', 0);
             dom.appendChild(this.canvas);
 
-            this.vscrollbar = new VScrollbar(this);
-            this.hscrollbar = new HScrollbar(this);
+            this.vscrollbar = new __.VScrollbar(this);
+            this.hscrollbar = new __.HScrollbar(this);
 
             __.on(this.canvas, 'focus', function(e) {
 
@@ -155,82 +45,112 @@
             var isDraw = true;
             switch(e.$key) {
                 case 'up':
-                    this.y += this.lineHeight;
+                    this.addY(this.lineHeight);
                     break;
                 case 'down':
-                    this.y -= this.lineHeight;
+                    this.addY(-this.lineHeight);
                     break;
                 case 'left':
-                    this.x += this.charWidth;
+                    this.addY(this.charWidth);
                     break;
                 case 'right':
-                    this.x -= this.charWidth;
+                    this.addY(-this.charWidth);
                     break;
                 case 'pagedown':
-                    this.y -= this.viewHeight;
+                    this.addY(-this.viewHeight);
                     break;
                 case 'pageup':
-                    this.y += this.viewHeight;
+                    this.addY(this.viewHeight);
                     break;
                 case 'home':
-                    this.y = 0;
+                    this.setY(0);
                     break;
                 case 'end':
-                    this.y = -this.dy;
+                    this.addY(-this.dy);
                     break;
-                default:
-                    isDraw = false;
-            }
-            if(isDraw) {
-                this.draw();
             }
         },
+        getCoords:function(){
+            return __.position(this.api.dom);
+        },
         _mousedown: function(e) {
-            var pos = __.position(this.api.dom);
+            var pos = this.getCoords();
             var point = {
-                x: e.$page.x-pos.x, 
-                y: e.$page.y-pos.y
+                x: e.$client.x-pos.x, 
+                y: e.$client.y-pos.y
             };
-            var type = null;
+            var scroll = null;
             if(this.vscrollbar.bound.contains(point)) {
-                type = 'v';
+               scroll = this.vscrollbar;
             } else if(this.hscrollbar.bound.contains(point)) {
-                type = 'h';
+               scroll = this.hscrollbar;
             }
-            if(type) {
-                var hmove = __.on(document, 'mousemove', function(e){
-                    if(type == 'h'){
-                        this.x = -(e.$page.x-pos.x)/this.hscrollbar.delta*this.dx;
-                    }else{
-                        this.y = -(e.$page.y-pos.y)/this.vscrollbar.delta*this.dy;
-                    }
-                    this.draw();
-                }, this);
+            if(scroll) {
+                scroll.mousedown(e);
+                var hmove = __.on(document, 'mousemove', scroll.mousemove, scroll);
                 var hup = __.on(document, 'mouseup', function() {
+                    scroll.mouseup(e);
                     hmove.remove();
                     hup.remove();
                     
                 }, this);
             }
         },
+        addX:function(diff){
+            this.setX(this.getX()+diff);
+        },
+        setX:function(x){
+            
+            if(x > 0) {
+                x = 0;
+            }
+            if(x < -this.dx) {
+                x = -this.dx
+            }
+            if(this.x !== x){
+                this.x = x;
+                this.draw();
+            }            
+        },
+        
+        getX:function(){
+            return this.x;
+        },
+        addY:function(diff){
+            this.setY(this.getY()+diff);
+        },
+        setY:function(y){
+            if(y > 0) {
+                y = 0;
+            }
+            if(y < -this.dy) {
+                y = -this.dy;
+            }
+            if(this.y !== y){
+                this.y = y;
+                this.draw();    
+            }                        
+        },
+        getY:function(){
+            return this.y;
+        },
         _wheel: function(e) {
             e.$stop();
             if(e.shiftKey) {
-                this.x += e.$wheel*this.fm.getWidth()*2;
+                this.addX(e.$wheel*this.fm.getWidth()*2);
             } else {
-                this.y += e.$wheel*this.fm.getHeight();
+                this.addY(e.$wheel*this.fm.getHeight());
             }
-            this.draw();
         },
         setFocus: function(focus) {
-            console.log('scode.Ui::setFocus('+focus+')');
+            //console.log('scode.Ui::setFocus('+focus+')');
             this._focus = focus;
             if(focus) {
                 this.canvas.focus();
             }
         },
         setSize: function(width, height) {
-            console.log('scode.Ui::setSize('+width+','+height+')');
+            //console.log('scode.Ui::setSize('+width+','+height+')');
             this.width = width;
             this.height = height;
             this.refresh();
@@ -250,21 +170,28 @@
 
             var contentWidth = this.contentWidth = maxLineLength*this.charWidth;
             var contentHeight = this.contentHeight = this.lineCount*this.lineHeight;
+            
 
             var dx = this.dx = contentWidth+this.rulerWidth > this.width ? contentWidth+this.rulerWidth+this.SCROLL_WIDTH-this.width : 0;
             var dy = this.dy = contentHeight > this.height ? contentHeight+this.SCROLL_WIDTH-this.height : 0;
 
             this.viewWidth = this.width-this.rulerWidth-this.VIEW_MARGIN;
-            if(dx > 0) {
+            if(dy > 0) {
                 this.viewWidth -= this.SCROLL_WIDTH;
             }
             this.viewHeight = this.height;
-            if(dy > 0) {
+            if(dx > 0) {
                 this.viewHeight -= this.SCROLL_WIDTH;
             }
-
-            this.vscrollbar.setBound(this.width-this.SCROLL_WIDTH, 0, this.SCROLL_WIDTH, this.viewHeight).setSize(dy, contentHeight);
-            this.hscrollbar.setBound(this.rulerWidth, this.viewHeight, this.viewWidth, this.SCROLL_WIDTH).setSize(dx, contentWidth);
+            this.hscrollbar.setBound(this.rulerWidth, this.viewHeight, this.viewWidth, this.SCROLL_WIDTH);
+            this.vscrollbar.setBound(this.width-this.SCROLL_WIDTH, 0, this.SCROLL_WIDTH, this.viewHeight);
+            if(dx !== 0){
+                this.hscrollbar.setPosition(this.viewWidth/contentWidth);
+            }            
+            if(dy !== 0){
+                this.vscrollbar.setPosition(this.viewHeight/contentHeight);
+            }
+            
             this.draw();
         },
         draw: function() {
@@ -279,18 +206,7 @@
             var vwidth = this.viewWidth;
             var vheight = this.viewHeight;
 
-            if(this.x > 0) {
-                this.x = 0;
-            }
-            if(this.x < -vwidth) {
-                this.x = -vwidth
-            }
-            if(this.y > 0) {
-                this.y = 0;
-            }
-            if(this.y < -vheight) {
-                this.y = -vheight;
-            }
+            
             var visibleLines = Math.ceil(vheight/lineHeight);
             var firstVisibleLine = Math.floor(Math.abs(this.y/lineHeight));
             var lastVisibleLine = firstVisibleLine+visibleLines;
@@ -311,9 +227,9 @@
 
             ctx.font = theme.fontSize+'px '+theme.font;
 
-            // console.log('firstVisibleLine',firstVisibleLine);
-            // console.log('lastVisibleLine',lastVisibleLine);
-            // console.log('visibleLines',visibleLines);
+            // //console.log('firstVisibleLine',firstVisibleLine);
+            // //console.log('lastVisibleLine',lastVisibleLine);
+            // //console.log('visibleLines',visibleLines);
 
             //draw line numbers
             var x = 5, y = lineHeight*firstVisibleLine+lineHeight;
@@ -343,8 +259,8 @@
 
             ctx.restore();
 
-            this.hscrollbar.draw(this.x/vwidth);
-            this.vscrollbar.draw(this.y/vheight);
+            this.hscrollbar.draw(this.x/this.dx);
+            this.vscrollbar.draw(this.y/this.dy);
 
         }
     });

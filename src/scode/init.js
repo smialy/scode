@@ -290,4 +290,18 @@ var scode = {};
     };
     __.Class = Class;
 
+    __.Rect = __.Class({
+        init: function(x, y, width, height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.x2 = x+width;
+            this.y2 = y+height;
+        },
+        contains: function(point) {
+            return this.x <= point.x&&this.x2 >= point.x&&this.y <= point.y&&this.y2 >= point.y;
+        }
+    });
+    
 })(scode);
