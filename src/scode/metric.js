@@ -5,11 +5,10 @@
             this._size = parseInt(size, 10)||14;
 
             var line = document.createElement('div');
-            with(line.style) {
-                font = this._size+'px normal '+this._family;
-                whiteSpace = 'nowrap';
-                position = 'absolute';
-            }
+            var s = line.style;
+            s.font = this._size+'px normal '+this._family;
+            s.whiteSpace = 'nowrap';
+            s.position = 'absolute';
             var txt = 'testy';
             line.innerHTML = txt;
             document.body.appendChild(line);
@@ -18,12 +17,11 @@
             this._height = line.offsetHeight;
 
             var span = document.createElement('span');
-            with(span.style) {
-                display = 'inline-block';
-                overflow = 'hidden';
-                width = '1px';
-                height = '1px';
-            }
+            s = span.style;
+            s.display = 'inline-block';
+            s.overflow = 'hidden';
+            s.width = '1px';
+            s.height = '1px';
             line.appendChild(span);
             this._baseline = span.offsetTop+span.offsetHeight;
             line.parentNode.removeChild(line);

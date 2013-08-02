@@ -27,7 +27,7 @@
         getSize:function(){
             return {
                 width:this.bound.width,
-                length:this.bound.height,
+                length:this.bound.height
             };
         },
         draw: function(x, y) {
@@ -39,7 +39,7 @@
             //need revert values
             return {
                 width:this.bound.height,
-                length:this.bound.width,
+                length:this.bound.width
             };
         },
         mousedown:function(e){
@@ -66,7 +66,7 @@
             }
         },
         mouseup:function(e){
-            this.mouseposition = null
+            this.mouseposition = null;
         },
         draw: function(pos) {
             if(!this.delta){
@@ -123,7 +123,7 @@
             }
         },
         mouseup:function(e){
-            this.mouseposition = null
+            this.mouseposition = null;
         },
         draw: function(pos) {
             this.pos = -pos*this.delta;

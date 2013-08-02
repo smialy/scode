@@ -18,7 +18,7 @@ var scode = {};
 
         var el = document.createElement('div');
         var isEventSupport = function(name) {
-            var el = window
+            var el = window;
             var ename = 'on'+name.toLowerCase();
             if( ename in el) {
                 return true;
@@ -30,7 +30,7 @@ var scode = {};
                 el.removeAttribute(ename);
             }
             return isSupport;
-        }
+        };
         var _codes = {
             38:'up',
             39:'right',
@@ -51,23 +51,21 @@ var scode = {};
             32:'space',
             8:'backspace'
         };
-        
+
         var listeners = {
             items:[],
             get: function(type, callback, bind, create) {
                 var item;
                 for(var i = 0, j = this.items.length;i < j;i++) {
-                    var item = this.items[i];
+                    item = this.items[i];
                     if(item&&item[1] === type&&item[2] === callback&&item[2] === bind) {
                         return item[0];
                     }
                 }
                 if(create) {
-                    
-                    
-                    
+
                     var listener = function(e) {
-                        var e = e||window.event;
+                        e = e||window.event;
                         var type = e.type;
 
                         e.$shift = e.shiftKey;
@@ -82,35 +80,35 @@ var scode = {};
                         e.$target = target;
                         if(type.indexOf('key') === 0) {
                             var code = e.which||e.keyCode;
-                            
+
                             if(_codes[code]) {
                                 e.$key = _codes[code];
-                            } else if(type == 'keydown'||type == 'keyup') {
+                            } else if(type === 'keydown'||type === 'keyup') {
                                 if(code > 111&&code < 124) {
                                     e.$key = 'f'+(code-111);
                                 } else if(code > 95&&code < 106) {
                                     e.$key = code-96;
-                                }else{
+                                } else {
                                     e.$key = String.fromCharCode(code).toLowerCase();
                                 }
                             }
                         } else if(type === 'click'||type === 'dbclick'||type.indexOf('mouse') === 0||type === 'DOMMouseScroll'||type === 'contextmenu') {
                             //mootools
-                            var doc = (!document.compatMode||document.compatMode == 'CSS1Compat') ? document.html : document.body;
+                            var doc = (!document.compatMode||document.compatMode === 'CSS1Compat') ? document.html : document.body;
                             e.$page = {
                                 x:(e.pageX !== null) ? e.pageX : e.clientX+document.body.scrollLeft,
                                 y:(e.pageY !== null) ? e.pageY : e.clientY+document.body.scrollTop
                             };
                             e.$client = {
-                                x:(e.pageX != null) ? e.pageX-window.pageXOffset : e.clientX,
-                                y:(e.pageY != null) ? e.pageY-window.pageYOffset : e.clientY
+                                x:(e.pageX !== null) ? e.pageX-window.pageXOffset : e.clientX,
+                                y:(e.pageY !== null) ? e.pageY-window.pageYOffset : e.clientY
                             };
-                            e.$isRight = (e.which == 3||e.button == 2);
+                            e.$isRight = (e.which === 3||e.button === 2);
 
                             if(e.type === 'mousewheel'||e.type === 'DOMMouseScroll') {
-                                e.$wheel = (e.wheelDelta) ? e.wheelDelta/120 : -(e.detail||0)/3
+                                e.$wheel = (e.wheelDelta) ? e.wheelDelta/120 : -(e.detail||0)/3;
                                 if(e.axis) {
-                                    if(e.axis == e.HORIZONTAL_AXIS) {
+                                    if(e.axis === e.HORIZONTAL_AXIS) {
                                         e.$axis = "horizontal";
                                     } else {
                                         e.$axis = "vertical";
@@ -169,7 +167,7 @@ var scode = {};
                 target.removeEventListener(type, listener, false);
             }
         };
-        __.position = function(el){
+        __.position = function(el) {
             var rect = el.getBoundingClientRect();
             return {
                 x:rect.left,
@@ -235,9 +233,6 @@ var scode = {};
         };
         //base wraper
         var klass = function() {
-            for(var i in _a) {
-                this[i] = sjs.clone(_a[i]);
-            }
             if(!klass.$proto) {
                 if(isFn(this.__init__)) {
                     return this.__init__.apply(this, arguments);
@@ -303,5 +298,5 @@ var scode = {};
             return this.x <= point.x&&this.x2 >= point.x&&this.y <= point.y&&this.y2 >= point.y;
         }
     });
-    
+
 })(scode);

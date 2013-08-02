@@ -105,7 +105,7 @@
                 x = 0;
             }
             if(x < -this.dx) {
-                x = -this.dx
+                x = -this.dx;
             }
             if(this.x !== x){
                 this.x = x;
@@ -234,7 +234,8 @@
             //draw line numbers
             var x = 5, y = lineHeight*firstVisibleLine+lineHeight;
             ctx.fillStyle = theme.lineNumberColor;
-            for(var currentLine = firstVisibleLine;currentLine <= lastVisibleLine;++currentLine) {
+            var currentLine;
+            for(currentLine = firstVisibleLine;currentLine <= lastVisibleLine;++currentLine) {
                 var line = currentLine+1;
 
                 ctx.fillText(currentLine+1, x+((maxNumberSize-(''+line).length)*charWidth), y);
@@ -251,7 +252,7 @@
             var lines = model.getLines(firstVisibleLine, lastVisibleLine);
             ctx.fillStyle = theme.fontColor;
             y = lineHeight*firstVisibleLine+lineHeight;
-            for(var currentLine = 0;currentLine < lines.length;++currentLine) {
+            for(currentLine = 0;currentLine < lines.length;++currentLine) {
                 ctx.fillText(lines[currentLine], this.rulerWidth+this.x+this.VIEW_MARGIN, y);
                 y += lineHeight;
             }

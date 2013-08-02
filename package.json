@@ -1,0 +1,33 @@
+{
+    "name": "scode",
+    "title": "SCode",
+    "description": "SCode",
+    "version": "0.1.0",
+    "homepage": "http://github.com/smialy/scode",
+    "author":{
+        "name": "Smialy",
+        "url": "http://github.com/smialy"
+    },
+
+
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/smialy/scode.git"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/smialy/sjs/blob/master/MIT-LICENSE.txt"
+        }
+    ],
+    "dependencies": {
+    },
+    "devDependencies":{
+        "grunt": "~0.4.0",
+        "grunt-contrib-uglify":"~0.1.2",
+        "grunt-contrib-concat":"~0.1.2",
+        "grunt-contrib-jshint":"~0.1.1",
+        "grunt-contrib-watch":"~0.2.0"        
+    },
+    "keywords": []
+}
