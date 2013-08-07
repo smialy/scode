@@ -4,7 +4,7 @@
             this.setText(txt || '');
         },
         setText:function(txt){
-            this._lines = txt.split(/\n/);
+            this._lines = txt.replace(/&nbsp;/g,' ').replace(/&gt/g,'>').replace(/&lt;/g,'<').split(/\n/);
             this._length = txt.length;
             var len = 0, max = 0;
             for(var i = 0, j = this._lines.length;i < j;i++) {

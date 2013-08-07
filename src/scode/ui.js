@@ -1,6 +1,5 @@
 (function(__) {
-    
-    
+
     __.UI = __.Class({
         init: function(api) {
             this.api = api;
@@ -43,6 +42,7 @@
         },
         _keydown: function(e) {
             var isDraw = true;
+            console.log(e.$key);
             switch(e.$key) {
                 case 'up':
                     this.addY(this.lineHeight);
@@ -51,10 +51,10 @@
                     this.addY(-this.lineHeight);
                     break;
                 case 'left':
-                    this.addY(this.charWidth);
+                    this.addX(this.charWidth);
                     break;
                 case 'right':
-                    this.addY(-this.charWidth);
+                    this.addX(-this.charWidth);
                     break;
                 case 'pagedown':
                     this.addY(-this.viewHeight);
@@ -70,20 +70,20 @@
                     break;
             }
         },
-        getCoords:function(){
+        getCoords: function() {
             return __.position(this.api.dom);
         },
         _mousedown: function(e) {
             var pos = this.getCoords();
             var point = {
-                x: e.$client.x-pos.x, 
-                y: e.$client.y-pos.y
+                x:e.$client.x-pos.x,
+                y:e.$client.y-pos.y
             };
             var scroll = null;
             if(this.vscrollbar.bound.contains(point)) {
-               scroll = this.vscrollbar;
+                scroll = this.vscrollbar;
             } else if(this.hscrollbar.bound.contains(point)) {
-               scroll = this.hscrollbar;
+                scroll = this.hscrollbar;
             }
             if(scroll) {
                 scroll.mousedown(e);
@@ -92,46 +92,45 @@
                     scroll.mouseup(e);
                     hmove.remove();
                     hup.remove();
-                    
+
                 }, this);
             }
         },
-        addX:function(diff){
+        addX: function(diff) {
             this.setX(this.getX()+diff);
         },
-        setX:function(x){
-            
+        setX: function(x) {
             if(x > 0) {
                 x = 0;
             }
             if(x < -this.dx) {
                 x = -this.dx;
             }
-            if(this.x !== x){
+            if(this.x !== x) {
                 this.x = x;
                 this.draw();
-            }            
+            }
         },
-        
-        getX:function(){
+
+        getX: function() {
             return this.x;
         },
-        addY:function(diff){
+        addY: function(diff) {
             this.setY(this.getY()+diff);
         },
-        setY:function(y){
+        setY: function(y) {
             if(y > 0) {
                 y = 0;
             }
             if(y < -this.dy) {
                 y = -this.dy;
             }
-            if(this.y !== y){
+            if(this.y !== y) {
                 this.y = y;
-                this.draw();    
-            }                        
+                this.draw();
+            }
         },
-        getY:function(){
+        getY: function() {
             return this.y;
         },
         _wheel: function(e) {
@@ -156,6 +155,9 @@
             this.refresh();
         },
         refresh: function() {
+            if(this.width <= 0 || this.height <= 0){
+                return;
+            }
             this.canvas.width = this.width;
             this.canvas.height = this.height;
 
@@ -170,7 +172,6 @@
 
             var contentWidth = this.contentWidth = maxLineLength*this.charWidth;
             var contentHeight = this.contentHeight = this.lineCount*this.lineHeight;
-            
 
             var dx = this.dx = contentWidth+this.rulerWidth > this.width ? contentWidth+this.rulerWidth+this.SCROLL_WIDTH-this.width : 0;
             var dy = this.dy = contentHeight > this.height ? contentHeight+this.SCROLL_WIDTH-this.height : 0;
@@ -185,13 +186,12 @@
             }
             this.hscrollbar.setBound(this.rulerWidth, this.viewHeight, this.viewWidth, this.SCROLL_WIDTH);
             this.vscrollbar.setBound(this.width-this.SCROLL_WIDTH, 0, this.SCROLL_WIDTH, this.viewHeight);
-            if(dx !== 0){
+            if(dx !== 0) {
                 this.hscrollbar.setPosition(this.viewWidth/contentWidth);
-            }            
-            if(dy !== 0){
+            }
+            if(dy !== 0) {
                 this.vscrollbar.setPosition(this.viewHeight/contentHeight);
             }
-            
             this.draw();
         },
         draw: function() {
@@ -206,7 +206,6 @@
             var vwidth = this.viewWidth;
             var vheight = this.viewHeight;
 
-            
             var visibleLines = Math.ceil(vheight/lineHeight);
             var firstVisibleLine = Math.floor(Math.abs(this.y/lineHeight));
             var lastVisibleLine = firstVisibleLine+visibleLines;
@@ -235,7 +234,7 @@
             var x = 5, y = lineHeight*firstVisibleLine+lineHeight;
             ctx.fillStyle = theme.lineNumberColor;
             var currentLine;
-            for(currentLine = firstVisibleLine;currentLine <= lastVisibleLine;++currentLine) {
+            for( currentLine = firstVisibleLine;currentLine <= lastVisibleLine;++currentLine) {
                 var line = currentLine+1;
 
                 ctx.fillText(currentLine+1, x+((maxNumberSize-(''+line).length)*charWidth), y);
@@ -252,9 +251,24 @@
             var lines = model.getLines(firstVisibleLine, lastVisibleLine);
             ctx.fillStyle = theme.fontColor;
             y = lineHeight*firstVisibleLine+lineHeight;
-            for(currentLine = 0;currentLine < lines.length;++currentLine) {
-                ctx.fillText(lines[currentLine], this.rulerWidth+this.x+this.VIEW_MARGIN, y);
-                y += lineHeight;
+
+            if(this.api.options.highlight) {
+                var lineStyles = __.syntax.getSyntaxStyles(lines, this.api.options.language);
+                var len = lineStyles.length;
+                for( currentLine = 0;currentLine < len;currentLine++) {
+                    var lineStyle = lineStyles[currentLine];
+                    for(var part = 0;part < lineStyle.length;part++) {
+                        var style = lineStyle[part];
+                        ctx.fillStyle = theme.syntax[style.type];
+                        ctx.fillText(style.text, style.start*charWidth+this.rulerWidth+this.x+this.VIEW_MARGIN, y);
+                    }
+                    y += lineHeight;
+                }
+            } else {
+                for( currentLine = 0;currentLine < lines.length;++currentLine) {
+                    ctx.fillText(lines[currentLine], this.rulerWidth+this.x+this.VIEW_MARGIN, y);
+                    y += lineHeight;
+                }
             }
             ctx.restore();
 

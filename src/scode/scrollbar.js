@@ -1,5 +1,5 @@
 (function(__) {
-    
+
     var Scrollbar = __.Class({
         init: function(ui) {
             this.ui = ui;
@@ -10,7 +10,8 @@
         },
 
         setBound: function(x, y, width, height) {
-            //console.debug('scode.ui.scrollbar.setBound(x='+x+', y='+y+', width='+width+', height='+height+')');
+            //console.debug('scode.ui.scrollbar.setBound(x='+x+', y='+y+',
+            // width='+width+', height='+height+')');
             this.bound = new __.Rect(x, y, width, height);
             this.canvas.width = width;
             this.canvas.height = height;
@@ -19,12 +20,12 @@
         setPosition: function(fraction) {
             //console.debug('scode.ui.scrollbar.setPosition(fraction='+fraction+')');
             var size = this.getSize();
-            this.barLength = fraction*size.length;
-            this.delta = size.length-this.barLength;
-            this.barLength -= size.width;
+            this.barLength = Math.max(fraction*size.length, size.width);
+            this.delta = size.length-this.barLength-size.width;
+            
             return this;
         },
-        getSize:function(){
+        getSize: function() {
             return {
                 width:this.bound.width,
                 length:this.bound.height
@@ -35,41 +36,40 @@
         }
     });
     __.HScrollbar = __.Class(Scrollbar, {
-        getSize:function(){
+        getSize: function() {
             //need revert values
             return {
                 width:this.bound.height,
                 length:this.bound.width
             };
         },
-        mousedown:function(e){
+        mousedown: function(e) {
             var pos = this.ui.getCoords();
-            var cx = e.$client.x - pos.x-this.bound.x;
+            var cx = e.$client.x-pos.x-this.bound.x;
             //click in handler
-            if(this.pos<=cx && cx<=this.pos+this.barLength+this.getSize().width){
-                //console.log('start drag');
+            if(this.pos <= cx&&cx <= this.pos+this.barLength+this.getSize().width) {
                 this.mouseposition = e.$client.x;
-                this.mousedownpos = this.pos; 
-            }else{
-                if(cx < this.pos){
+                this.mousedownpos = this.pos;
+            } else {
+                if(cx < this.pos) {
                     this.ui.addX(this.ui.viewWidth);
-                }else if( cx > this.pos+this.barLength){
+                } else if(cx > this.pos+this.barLength) {
                     this.ui.addX(-this.ui.viewWidth);
                 }
             }
-            
+
         },
-        mousemove:function(e){
-            if(this.mouseposition){
-                var diff = e.$client.x - this.mouseposition;
+        mousemove: function(e) {
+            if(this.mouseposition) {
+                var diff = e.$client.x-this.mouseposition;
                 this.ui.setX(-this.ui.dx*(diff+this.mousedownpos)/this.delta);
             }
         },
-        mouseup:function(e){
+        mouseup: function(e) {
             this.mouseposition = null;
         },
         draw: function(pos) {
-            if(!this.delta){
+            if(!this.delta) {
                 return;
             }
             this.pos = -pos*this.delta;
@@ -100,29 +100,31 @@
         }
     });
     __.VScrollbar = __.Class(Scrollbar, {
-        mousedown:function(e){
+        mousedown: function(e) {
+            e.$stop();
             var pos = this.ui.getCoords();
-            var cy = e.$client.y - pos.y;
+            var cy = e.$client.y-pos.y;
             //click in handler
-            if(this.pos<=cy && cy<=this.pos+this.barLength+this.getSize().width){
+            if(this.pos <= cy&&cy <= this.pos+this.barLength+this.getSize().width) {
                 this.mouseposition = e.$client.y;
-                this.mousedownpos = this.pos; 
-            }else{
-                if(cy < this.pos){
+                this.mousedownpos = this.pos;
+            } else {
+                if(cy < this.pos) {
                     this.ui.addY(this.ui.viewHeight);
-                }else if( cy > this.pos+this.barLength){
+                } else if(cy > this.pos+this.barLength) {
                     this.ui.addY(-this.ui.viewHeight);
                 }
             }
-            
+
         },
-        mousemove:function(e){
-            if(this.mouseposition){
-                var diff = e.$client.y - this.mouseposition;
+        mousemove: function(e) {
+            e.$stop();
+            if(this.mouseposition) {
+                var diff = e.$client.y-this.mouseposition;
                 this.ui.setY(-this.ui.dy*(diff+this.mousedownpos)/this.delta);
             }
         },
-        mouseup:function(e){
+        mouseup: function(e) {
             this.mouseposition = null;
         },
         draw: function(pos) {

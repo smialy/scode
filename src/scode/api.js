@@ -5,22 +5,28 @@
             this.options = __.ext({
                 width:0,
                 height:0,
+                text:'',
                 autosize:true,
+                highlight:false,
+                language:'plain',
                 theme: {
                     font:'Monaco, "Courier New", Courier, monospace',
                     fontSize:14,
                     fontColor:'#fff',
                     backgroundColor:'#000',
                     borderBackgroundColor:'#ddd',
-                    lineNumberColor:'#000'
+                    lineNumberColor:'#000',
+                    syntax:{
+                        plain:'#000'
+                    }
                     
                 }
             }, options);
             this.dom = dom;
-            this.model = new __.Model();
+            this.model = new __.Model(this.options.text);
             this.ui = new __.UI(this);
             
-      
+        
             this.setFocus(true);
             this.resize();
         },
